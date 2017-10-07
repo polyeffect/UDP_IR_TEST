@@ -1,0 +1,108 @@
+package
+{
+	import flash.display.Sprite;
+	import flash.display.StageAlign;
+	import flash.display.StageDisplayState;
+	import flash.display.StageScaleMode;
+	import flash.events.DatagramSocketDataEvent;
+	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.net.DatagramSocket;
+	import flash.text.TextField;
+	import flash.utils.ByteArray;
+	
+	[SWF(width="1080", height="1920", frameRate="60", backgroundColor="#000000")]
+	public class WifiExam extends Sprite
+	{
+		// UDP DatagramSocket
+		private var socket:DatagramSocket = new DatagramSocket();
+		private var address:String = "192.168.0.111", port:int = 8888;
+		
+		// TextField
+		private var receivedPacket:TextField = new TextField();
+		
+		public function WifiExam()
+		{
+			super();
+			
+			if(stage) init();
+			else this.addEventListener(Event.ADDED_TO_STAGE, init);
+			
+			
+		}
+		
+		public function init(event:Event = null):void {
+			this.removeEventListener(Event.ADDED_TO_STAGE, init);
+			trace("init!!!");
+			
+			// support autoOrients
+			stage.align = StageAlign.TOP_LEFT;
+			stage.scaleMode = StageScaleMode.NO_SCALE;
+			stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+			stage.autoOrients = false;
+			
+			// btn
+			var btnOn:Sprite = new Sprite();
+			btnOn.graphics.beginFill(0x0022FF);
+			btnOn.graphics.drawRect(0, 0, 540, 960);
+			btnOn.graphics.endFill();
+			btnOn.addEventListener(MouseEvent.CLICK, btnOnClickListener);
+			addChild(btnOn);
+			
+			var btnOff:Sprite = new Sprite();
+			btnOff.graphics.beginFill(0xFF2200);
+			btnOff.graphics.drawRect(540, 0, 540, 960);
+			btnOff.graphics.endFill();
+			btnOff.addEventListener(MouseEvent.CLICK, btnOffClickListener);
+			addChild(btnOff);
+			
+			//Text Field
+			receivedPacket.x = 100;
+			receivedPacket.y = 100;
+			receivedPacket.width = 1080;
+			receivedPacket.height = 100;
+			receivedPacket.text = "init!!!!!!"
+			addChild(receivedPacket);	
+			
+			socket.addEventListener( DatagramSocketDataEvent.DATA, dataReceived );
+			socket.receive();
+		}
+		
+		private function bind( event:Event ):void
+		{
+			if( socket.bound ) 
+			{
+				socket.close();
+				socket = new DatagramSocket();
+				
+			}
+			socket.bind( parseInt( receivedPacket.text ), receivedPacket.text );
+			socket.addEventListener( DatagramSocketDataEvent.DATA, dataReceived );
+			socket.receive();
+			receivedPacket.text = "Bound to: " + socket.localAddress + ":" + socket.localPort;
+		}
+		
+		protected function dataReceived(event:DatagramSocketDataEvent):void
+		{
+			// TODO Auto-generated method stub
+			receivedPacket.text = "Received from " + event.srcAddress + ":" + event.srcPort + "> " + 
+				event.data.readUTFBytes( event.data.bytesAvailable );
+		}
+		
+		protected function btnOnClickListener(event:MouseEvent):void
+		{
+			// TODO Auto-generated method stub
+			var bytes:ByteArray = new ByteArray();
+			bytes.writeUTFBytes("on");
+			socket.send(bytes, 0, 0, address, port);
+		}
+		
+		protected function btnOffClickListener(event:MouseEvent):void
+		{
+			// TODO Auto-generated method stub
+			var bytes:ByteArray = new ByteArray();
+			bytes.writeUTFBytes("off");
+			socket.send(bytes, 0, 0, address, port);
+		}
+	}
+}
