@@ -11,12 +11,15 @@ package
 	import flash.text.TextField;
 	import flash.utils.ByteArray;
 	
+	
 	[SWF(width="1080", height="1920", frameRate="60", backgroundColor="#000000")]
 	public class WifiExam extends Sprite
 	{
 		// UDP DatagramSocket
 		private var socket:DatagramSocket = new DatagramSocket();
 		private var address:String = "192.168.0.111", port:int = 8888;
+		private var buffer:String;
+//		private var data:String = ""; 
 		
 		// TextField
 		private var receivedPacket:TextField = new TextField();
@@ -27,8 +30,6 @@ package
 			
 			if(stage) init();
 			else this.addEventListener(Event.ADDED_TO_STAGE, init);
-			
-			
 		}
 		
 		public function init(event:Event = null):void {
@@ -68,26 +69,40 @@ package
 			socket.receive();
 		}
 		
-		private function bind( event:Event ):void
-		{
-			if( socket.bound ) 
-			{
-				socket.close();
-				socket = new DatagramSocket();
-				
-			}
-			socket.bind( parseInt( receivedPacket.text ), receivedPacket.text );
-			socket.addEventListener( DatagramSocketDataEvent.DATA, dataReceived );
-			socket.receive();
-			receivedPacket.text = "Bound to: " + socket.localAddress + ":" + socket.localPort;
-		}
+//		private function bind( event:Event ):void
+//		{
+//			if( socket.bound ) 
+//			{
+//				socket.close();
+//				socket = new DatagramSocket();
+//				
+//			}
+//			socket.bind( parseInt( receivedPacket.text ), receivedPacket.text );
+//			socket.addEventListener( DatagramSocketDataEvent.DATA, dataReceived );
+//			socket.receive();
+//			receivedPacket.text = "Bound to: " + socket.localAddress + ":" + socket.localPort;
+//		}
 		
 		protected function dataReceived(event:DatagramSocketDataEvent):void
 		{
-			// TODO Auto-generated method stub
-			receivedPacket.text = "Received from " + event.srcAddress + ":" + event.srcPort + "> " + 
-				event.data.readUTFBytes( event.data.bytesAvailable );
+			var data:String = event.data.readUTFBytes( event.data.bytesAvailable );
+			//trace("Received from " + event.srcAddress + ":" + event.srcPort + "> " + data);
+//			checkDataSum(data);
+			
+			if (data == "acknowledged") {
+				trace("correct");
+				receivedPacket.text = "correct";
+			}
 		}
+		
+//		private function checkDataSum(data:String):void {
+//			buffer += data;
+//			// Remove Line Feed
+//			buffer = buffer.split("*").join("");
+//			buffer = buffer.replace(":0$", "");
+//			buffer = buffer.replace(":1$", "");
+//			trace(data, buffer);
+//		}
 		
 		protected function btnOnClickListener(event:MouseEvent):void
 		{
