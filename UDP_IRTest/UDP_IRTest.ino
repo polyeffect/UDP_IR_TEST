@@ -68,8 +68,7 @@ void loop() {
 
       // if there’s data available, read a packet
       int packetSize = UDP.parsePacket();
-      if (packetSize)
-      {
+      if (packetSize) {
         Serial.println("");
         Serial.print("Received packet of size ");
         Serial.println(packetSize);
@@ -81,41 +80,53 @@ void loop() {
             Serial.print(".");
           }
         }
+
         Serial.print(", port ");
         Serial.println(UDP.remotePort());
 
         // read the packet into packetBufffer
         UDP.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
         Serial.print("Message1: ");
-        int WhichLEDPin = packetBuffer[0];
-        Serial.println(WhichLEDPin);
+        int packet1 = packetBuffer[0];
+        Serial.println(packet1);
         Serial.print("Message2: ");
         int packet2 = packetBuffer[1];
         Serial.println(packet2);
         Serial.print("UDP from Android: ");
         Serial.println(packetBuffer);
+        Serial.print("UDP_TX_PACKET_MAX_SIZE: ");
+        Serial.println(UDP_TX_PACKET_MAX_SIZE);
 
-        if (packetBuffer[1] == 110) {
+        String str(packetBuffer);
+        Serial.print("char array to string: ");
+        Serial.println(str);
+
+        if (str.equals("on")) {
           Serial.println("on");
           isIROn();
-        } else if (packetBuffer[1] == 102) {
+        } else if (str.equals("off")) {
           Serial.println("off");
           isIROn();
         }
 
-        char packetBuffer[UDP_TX_PACKET_MAX_SIZE] = "";
+        //        if (packetBuffer[1] == 110) {
+        //          Serial.println("on");
+        //          isIROn();
+        //        } else if (packetBuffer[1] == 102) {
+        //          Serial.println("off");
+        //          isIROn();
+        //        }
 
         // send a reply, to the IP address and port that sent us the packet we received
-        /*
-          UDP.beginPacket(UDP.remoteIP(), UDP.remotePort());
-          UDP.print(WiFi.localIP());
-          UDP.endPacket();
-        */
+        UDP.beginPacket(UDP.remoteIP(), UDP.remotePort());
+        UDP.write(ReplyBuffer);
+        UDP.endPacket();
 
+        // reset UDP packet
+        for (int i = 0; i < UDP_TX_PACKET_MAX_SIZE; i++) packetBuffer[i] = 0;
         delay(10);
       }
     }
-
     delay(10);
   }
 }
